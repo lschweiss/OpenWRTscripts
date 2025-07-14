@@ -1,53 +1,18 @@
 #! /bin/sh
-opkg install acme-acmesh-dnsapi
-opkg install bind-dig
-opkg install block-mount
-opkg install curl
-opkg install diffutils
-opkg install fdisk
-opkg install gawk
-opkg install git
-opkg install grep
-opkg install htop
-opkg install ifstat
-opkg install iftop
-opkg install ip-full
-opkg install ip6tables-nft
-opkg install ip6tables-zz-legacy
-opkg install ipset-dns
-opkg install iptables-nft
-opkg install iputils-arping
-opkg install less
-opkg install lldpd
-opkg install luci-app-acme
-opkg install luci-app-advanced-reboot
-opkg install luci-app-attendedsysupgrade
-opkg install luci-app-commands
-opkg install luci-app-ddns
-opkg install luci-app-mwan3
-opkg install luci-app-nlbwmon
-opkg install luci-app-opkg
-opkg install luci-app-statistics
-opkg install luci-app-ttyd
-opkg install luci-app-wol
-opkg install msmtp-mta
-opkg install msmtp-queue
-opkg install net-tools-route
-opkg install procps-ng-ps
-opkg install procps-ng-top
-opkg install procps-ng-watch
-opkg install sed
-opkg install snmpd
-opkg install tailscale
-opkg install tcpdump
-opkg install telnet-bsd
-opkg install usbutils
-opkg install vim-fuller
-opkg install vim-help
-opkg install xfs-admin
-opkg install xfs-fsck
-opkg install xfs-growfs
-opkg install xfs-mkfs
+packages=`cat packages`
+backups=`cat backups`
+
+opkg update
+mkdir /tmp/setup
+for package in $packages; do
+    opkg status $package | grep -q "installed" 
+    if [ $? -ne 0 ]; then;
+        echo "Installing $package"
+        opkg install $package 1> /tmp/setup/install.$package 2> /tmp/setup/install.${ackage}.err
+    else
+        echo "Already installed $package"
+    fi
+done
 
 if [ ! -f /root/opkgscript.sh ]; then 
     wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
@@ -100,38 +65,9 @@ if [ ! -f /etc/sysupgrade.conf ]; then
 
 # /etc/example.conf
 # /etc/openvpn/
-/root
-/etc/hosts*
-/etc/rc.d
-/etc/init.d
-/etc/inittab
-/etc/shells
-/etc/tailscale
-/etc/modules*
-/etc/rc.local
-/etc/ssh
-/etc/ssl
-/etc/snmp
-/etc/sysctl.conf
-/etc/sysctl.d
-/etc/syslog.conf
-/etc/unbound
-/etc/acme
-/etc/adblock
-/etc/banip
-/etc/cloudflared
-/etc/crontabs
-/etc/lldpd.d
-/etc/luci-uploads
-/etc/luci_statistics
-/etc/mwa3.user
-/etc/nftables.d
-/etc/profile
-/etc/profile.d
-/etc/bash.bashrc
-/etc/board..d
-/etc/board.json
 EOF3
 fi
 
-
+for x in $backup; do
+    grep -q /etc/sysupgrade.conf "$x" || echo $x >> /etc/sysupgrade.conf
+done
