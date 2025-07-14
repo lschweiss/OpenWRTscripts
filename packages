@@ -26,7 +26,6 @@ luci-app-commands
 luci-app-ddns
 luci-app-mwan3
 luci-app-nlbwmon
-luci-app-opkg
 luci-app-statistics
 luci-app-ttyd
 luci-app-wol
