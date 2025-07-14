@@ -6,7 +6,7 @@ opkg update
 mkdir /tmp/setup
 for package in $packages; do
     opkg status $package | grep -q "installed" 
-    if [ $? -ne 0 ]; then;
+    if [ $? -ne 0 ]; then
         echo "Installing $package"
         opkg install $package 1> /tmp/setup/install.$package 2> /tmp/setup/install.${ackage}.err
     else
