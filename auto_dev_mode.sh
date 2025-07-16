@@ -13,7 +13,6 @@ if [ $? -eq 0 ]; then
         touch /etc/devmode/devmode_enabled
         uci get network.lan.ipaddr > /etc/devmode/prod_ipaddr
         uci get network.lan.netmask > /etc/devmode/prod_netmask
-        uci get network.lan.defaultroute && uci get network.lan.defaultroute > /etc/devmode/prod_defaultroute
         uci get system.@system[0].hostname > /etc/devmode/prod_hostname
 
         netip=`cat /etc/devmode/prod_ipaddr | cut -d '.' -f 4`
@@ -21,10 +20,15 @@ if [ $? -eq 0 ]; then
         uci set network.lan.ipaddr="${dev_network}.${netip}"
         uci set network.lan.netmask='255.255.255.0'
         uci set network.lan.defaultroute='0'
+        # Set DHCP option to exclude default gateway
+        uci add_list dhcp.lan.dhcp_option='3'
+
         uci set system.@system[0].hostname="$(cat /etc/devmode/prod_hostname)_DEVMODE"
         uci commit system
         uci commit network
+        uci commit dhcp
         /etc/init.d/system reload
+        /etc/init.d/dnsmasq restart
         /etc/init.d/network restart
     else
         echo "The WAN port is connected to the LAN.  Dev mode already active"
@@ -35,11 +39,13 @@ else
         rm -f /etc/devmode/devmode_enabled
         uci set network.lan.ipaddr="$(cat /etc/devmode/prod_ipaddr)"
         uci set network.lan.netmask="$(cat /etc/devmode/prod_netmask)"
-        [ -f /etc/devmode/prod_defaultroute ] && uci set network.lan.defaultroute="$(cat /etc/devmode/prod_defaultroute)"
+        uci del_list dhcp.lan.dhcp_option='3'
         uci set system.@system[0].hostname="$(cat /etc/devmode/prod_hostname)"
+        uci commit dhcp
         uci commit system
         uci commit network
         /etc/init.d/system reload
+        /etc/init.d/dnsmasq restart
         /etc/init.d/network restart
     else
         echo "WAN port is not connected to the LAN.  Remaining in production mode."
