@@ -68,6 +68,6 @@ if [ ! -f /etc/sysupgrade.conf ]; then
 EOF3
 fi
 
-for x in $backup; do
+for x in $backups; do
     grep -q /etc/sysupgrade.conf "$x" || echo $x >> /etc/sysupgrade.conf
 done
