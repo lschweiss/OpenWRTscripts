@@ -3,7 +3,7 @@ packages=`cat packages`
 backups=`cat backups`
 
 opkg update
-mkdir /tmp/setup
+mkdir -p /tmp/setup
 for package in $packages; do
     opkg status $package | grep -q "installed" 
     if [ $? -ne 0 ]; then
@@ -69,7 +69,7 @@ EOF3
 fi
 
 for x in $backups; do
-    grep -q /etc/sysupgrade.conf "$x" || echo $x >> /etc/sysupgrade.conf
+    grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
 done
 
 # Configure auto_dev_mode
@@ -84,15 +84,16 @@ if [ $? -ne 0 ]; then
 
 exit 0
 EOF4
+fi
 
-chmod +x 
+chmod +x /etc/rc.local
 
 # Create configuration file
 touch /etc/config/auto_dev_mode
 # Set variables
 uci set auto_dev_mode.settings=auto_dev_mode
 uci set auto_dev_mode.settings.prod_network='192.168.1'
-uci set auto_dev_mode.settings.prod_network='192.168.99'
+uci set auto_dev_mode.settings.dev_network='192.168.99'
 uci set auto_dev_mode.settings.enable='1'
 uci set auto_dev_mode.settings.force='0'
 
@@ -105,3 +106,13 @@ done
 uci commit auto_dev_mode
 # Verify settings
 uci show auto_dev_mode
+
+
+# Add Tailscale repository and install Tailscale
+wget -O /tmp/key-build.pub https://gunanovo.github.io/openwrt-tailscale/key-build.pub && opkg-key add /tmp/key-build.pub
+grep -q "openwrt-tailscale" /etc/opkg/customfeeds.conf || \
+    echo "src/gz openwrt-tailscale https://gunanovo.github.io/openwrt-tailscale" >> /etc/opkg/customfeeds.conf
+opkg update
+opkg install tailscale
+
+

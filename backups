@@ -6,8 +6,6 @@
 /etc/inittab
 /etc/shells
 /etc/tailscale
-/etc/modules*
-/etc/rc.local
 /etc/ssh
 /etc/ssl
 /etc/snmp
