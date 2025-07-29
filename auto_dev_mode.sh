@@ -6,7 +6,9 @@
 
 prod_network="$(uci get auto_dev_mode.settings.prod_network 2>/dev/null || echo '192.168.1')"
 dev_network="$(uci get auto_dev_mode.settings.dev_network 2>/dev/null || echo '192.168.99')"
-enabled="$(uci get auto_dev_mode.settings.dev_network 2>/dev/null || echo '1')"
+enabled="$(uci get auto_dev_mode.settings.enabled 2>/dev/null || echo '1')"
+force="$(uci get auto_dev_mode.settings.force 2>/dev/null || echo '0')"
+disable_services="$(uci get auto_dev_mode.settings.disable_services 2>/dev/null )"
 
 if [ $enabled -eq 0 ]; then
     echo "auto_dev_mode disabled.  Exiting."
@@ -27,21 +29,24 @@ echo "WAN connection up"
 ip a show wan | grep "inet "
     
 
+mkdir -p /etc/devmode
 ip a show wan|grep -q "inet ${prod_network}."
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] || [ $force -eq 1 ]; then
     if [ ! -f /etc/devmode/devmode_enabled ]; then
         echo "The WAN port is connected to the LAN.  Enabling Dev Mode LAN config."
-        mkdir -p /etc/devmode
         touch /etc/devmode/devmode_enabled
+        rm -f /etc/devmode/disabled_services
         uci get network.lan.ipaddr > /etc/devmode/prod_ipaddr
         uci get network.lan.netmask > /etc/devmode/prod_netmask
         uci get system.@system[0].hostname > /etc/devmode/prod_hostname
 
         netip=`cat /etc/devmode/prod_ipaddr | cut -d '.' -f 4`
-
+    
+        # Change IP to dev network
         uci set network.lan.ipaddr="${dev_network}.${netip}"
         uci set network.lan.netmask='255.255.255.0'
         uci set network.lan.defaultroute='0'
+
         # Set DHCP option to exclude default gateway
         uci add_list dhcp.lan.dhcp_option='3'
 
@@ -54,6 +59,17 @@ if [ $? -eq 0 ]; then
             uci set firewall.@rule[-1].dest_port='22'
             uci set firewall.@rule[-1].target='ACCEPT'
         fi
+        
+        # Services to disable in Dev mode
+        for service in $disable_services; do
+            service $service status
+            if [ $? -eq 0 ]; then
+                echo "Disabling service $service"
+                service $service disable
+                service $service stop
+                echo "$service" >> /etc/devmode/disabled_services
+            fi
+        done
 
         uci set system.@system[0].hostname="$(cat /etc/devmode/prod_hostname)_DEVMODE"
         uci commit system
@@ -100,6 +116,14 @@ else
                 echo "Rule '$RULE_NAME' not found"
             fi
         fi
+
+        # Enable services disabled in Dev mode
+        services=`cat /etc/devmode/disabled_services`
+        for service in $services; do 
+            echo "Enabling service $service"
+            service $service enable
+            service $service start
+        done
 
 
     else

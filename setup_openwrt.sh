@@ -94,6 +94,12 @@ uci set auto_dev_mode.settings=auto_dev_mode
 uci set auto_dev_mode.settings.prod_network='192.168.1'
 uci set auto_dev_mode.settings.prod_network='192.168.99'
 uci set auto_dev_mode.settings.enable='1'
+uci set auto_dev_mode.settings.force='0'
+
+disable_services="tailscale wgserver acme ddns openvpn"
+for service in $disable_services; do
+    uci add_list auto_dev_mode.settings.disable_services=$service
+done
 
 # Commit changes
 uci commit auto_dev_mode
