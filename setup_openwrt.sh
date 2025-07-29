@@ -71,3 +71,31 @@ fi
 for x in $backups; do
     grep -q /etc/sysupgrade.conf "$x" || echo $x >> /etc/sysupgrade.conf
 done
+
+# Configure auto_dev_mode
+
+uci show auto_dev_mode
+if [ $? -ne 0 ]; then
+    cat << EOF4 > /etc/rc.local
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+[ -e /root/OpenWRTscripts/auto_dev_mode.sh ] && /root/OpenWRTscripts/auto_dev_mode.sh 2>&1 | logger -t auto_dev_mode
+
+exit 0
+EOF4
+
+chmod +x 
+
+# Create configuration file
+touch /etc/config/auto_dev_mode
+# Set variables
+uci set auto_dev_mode.settings=auto_dev_mode
+uci set auto_dev_mode.settings.prod_network='192.168.1'
+uci set auto_dev_mode.settings.prod_network='192.168.99'
+uci set auto_dev_mode.settings.enable='1'
+
+# Commit changes
+uci commit auto_dev_mode
+# Verify settings
+uci show auto_dev_mode

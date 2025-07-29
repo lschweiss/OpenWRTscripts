@@ -2,14 +2,36 @@
 
 # Detect when the WAN port is connected to the production LAN subnet and adjust this router's runtime LAN settings to not create a duplicate subnet.
 
-prod_network="192.168.9"
-dev_network="192.168.99"
+# Retrive variables from UCI
 
-ip a show wan|grep "inet ${prod_network}."
+prod_network="$(uci get auto_dev_mode.settings.prod_network 2>/dev/null || echo '192.168.1')"
+dev_network="$(uci get auto_dev_mode.settings.dev_network 2>/dev/null || echo '192.168.99')"
+enabled="$(uci get auto_dev_mode.settings.dev_network 2>/dev/null || echo '1')"
+
+if [ $enabled -eq 0 ]; then
+    echo "auto_dev_mode disabled.  Exiting."
+    exit 0
+fi
+
+# Wait for WAN connection to come up
+echo -n "Waiting for WAN to come up."
+ip a show wan | grep "inet " 
+result=$?
+until [ $result -eq 0 ]; do 
+    echo -n "."
+    ip a show wan | grep -q "inet "
+    result=$?
+    sleep 1
+done
+echo "WAN connection up"
+ip a show wan | grep "inet "
+    
+
+ip a show wan|grep -q "inet ${prod_network}."
 if [ $? -eq 0 ]; then
     if [ ! -f /etc/devmode/devmode_enabled ]; then
         echo "The WAN port is connected to the LAN.  Enabling Dev Mode LAN config."
-        mkdir /etc/devmode
+        mkdir -p /etc/devmode
         touch /etc/devmode/devmode_enabled
         uci get network.lan.ipaddr > /etc/devmode/prod_ipaddr
         uci get network.lan.netmask > /etc/devmode/prod_netmask
