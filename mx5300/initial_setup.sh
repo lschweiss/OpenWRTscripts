@@ -15,11 +15,50 @@ IP="$1"
 [ "$IP" == '' ] && IP='192.168.1.1'
 MODEL='Linksys MX5300'
 
-SSH="ssh -x -oStrictHostKeyChecking=no root@$IP"
+SSH="ssh -x -o StrictHostKeyChecking=no root@$IP"
 
-# https://downloads.openwrt.org/releases/24.10.2/targets/qualcommax/ipq807x/openwrt-24.10.2-qualcommax-ipq807x-linksys_mx5300-squashfs-factory.bin
+wait_for_reboot () {
+    # Wait for reboot
+    echo
+    echo -n "Waiting for router to reboot and connection established."
+    connected=1
+    while [ $connected -ne 0 ]; do
+        sleep 5
+        echo -n '.'
+        $SSH echo "Reconnection established." 2>/dev/null
+        connected=$?
+    done
+}
+
+install_packages () {
+    while [ $1 != '' ]; do
+        package="$1"
+        $SSH "opkg status $package" | grep -q "installed"
+        if [ $? -ne 0 ]; then
+            echo "Installing $package"
+            ssh "opkg install $package" 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
+                die "Failed to install $package"
+        else
+            echo "Already installed $package"
+        fi
+        shift
+    done
+}
+
+setup_openwrt () {
+    # Install bash, git and download OpenWRTscripts
+
+    $SSH "opkg update" || die "Could not update opkg packages.  Is internet connected?"
+    install_packages bash git git-http
+    $SSH git clone https://github.com/lschweiss/OpenWRTscripts.git
+
+    # Run initial OpenWRT setup
+    $SSH /root/OpenWRTscripts/setup_openwrt.sh
+}
+
 
 # Test connectivity
+ssh-keygen -R 192.168.1.1
 $SSH echo "SSH connectivity verified." 
 [ $? -ne 0 ] && die "Cannot connect to mx5300 at $IP"
 echo
@@ -41,6 +80,8 @@ echo
 
 
 # Download firmware
+echo "Flashing OpenWRT to alternate firmware partition"
+echo
 fw="openwrt-${DISTRIB_RELEASE}-qualcommax-ipq807x-linksys_mx5300-squashfs-factory.bin"
 $SSH "wget -O /tmp/openwrt-factory.bin https://downloads.openwrt.org/releases/${DISTRIB_RELEASE}/targets/qualcommax/ipq807x/${fw}" || \
     die "Could not download $fw"
@@ -62,52 +103,26 @@ case $boot_part in
         ;;
 esac
 
-# Wait for reboot
-echo
-echo -n "Waiting for router to reboot and connection established."
-connected=1
-while [ $connected -ne 0 ]; do
-    sleep 5
-    echo -n '.'
-    $SSH echo "Reconnection established." 2>/dev/null
-    connected=$?
-done
+wait_for_reboot
 
+setup_openwrt
 
-# Install bash, git and download OpenWRTscripts
+##
+# Repeat setup on other partion
+##
+echo 
+echo "###"
+echo "# Repeating setup on other partion"
+echo "###"
 
-$SSH opkg update
-$SSH opkg install bash
-$SSH opkg install git
-$SSH opkg install git-http
-$SSH git clone https://github.com/lschweiss/OpenWRTscripts.git
-
-# Run initial OpenWRT setup
-$SSH /root/OpenWRTscripts/setup_openwrt.sh
 
 # Reboot to other partiton
+echo
+echo "Rebooting to alternate partition..."
 $SSH /root/OpenWRTscripts/mx5300/switch_boot_partitions.sh
 
-# Wait for reboot
-echo
-echo -n "Waiting for router to reboot and connection established."
-connected=1
-while [ $connected -ne 0 ]; do
-    sleep 5
-    echo -n '.'
-    $SSH echo "Reconnection established." 2>/dev/null
-    connected=$?
-done
+wait_for_reboot
 
-# Install bash, git and download OpenWRTscripts
-
-$SSH opkg update
-$SSH opkg install bash
-$SSH opkg install git
-$SSH opkg install git-http
-$SSH git clone https://github.com/lschweiss/OpenWRTscripts.git
-
-# Run initial OpenWRT setup
-$SSH /root/OpenWRTscripts/setup_openwrt.sh
+setup_openwrt
 
 echo "Openwrt basic setup complete on both partitons."
