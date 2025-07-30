@@ -15,7 +15,7 @@ IP="$1"
 [ "$IP" == '' ] && IP='192.168.1.1'
 MODEL='Linksys MX5300'
 
-SSH="ssh -x root@$IP"
+SSH="ssh -x -oStrictHostKeyChecking=no root@$IP"
 
 # https://downloads.openwrt.org/releases/24.10.2/targets/qualcommax/ipq807x/openwrt-24.10.2-qualcommax-ipq807x-linksys_mx5300-squashfs-factory.bin
 
@@ -69,7 +69,7 @@ connected=1
 while [ $connected -ne 0 ]; do
     sleep 5
     echo -n '.'
-    $SSH echo "Reconnection established."
+    $SSH echo "Reconnection established." 2>/dev/null
     connected=$?
 done
 
@@ -95,7 +95,7 @@ connected=1
 while [ $connected -ne 0 ]; do
     sleep 5
     echo -n '.'
-    $SSH echo "Reconnection established."
+    $SSH echo "Reconnection established." 2>/dev/null
     connected=$?
 done
 
