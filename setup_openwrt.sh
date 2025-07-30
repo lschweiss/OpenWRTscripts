@@ -123,7 +123,7 @@ wget -O /tmp/key-build.pub https://gunanovo.github.io/openwrt-tailscale/key-buil
 grep -q "openwrt-tailscale" /etc/opkg/customfeeds.conf || \
     echo "src/gz openwrt-tailscale https://gunanovo.github.io/openwrt-tailscale" >> /etc/opkg/customfeeds.conf
 opkg update
-opkg install tailscale
+opkg install tailscale 2>/dev/null
 
 # Change default shell to bash
 sed -i 's,/bin/ash,/bin/bash,g' /etc/passwd
