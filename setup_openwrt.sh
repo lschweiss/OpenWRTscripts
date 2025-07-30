@@ -1,4 +1,14 @@
-#! /bin/sh
+#! /bin/bash
+
+# Find our source and change to the directory
+if [ -f "${BASH_SOURCE[0]}" ]; then
+    my_source=`readlink -f "${BASH_SOURCE[0]}"`
+else
+    my_source="${BASH_SOURCE[0]}"
+fi
+cd $( cd -P "$( dirname "${my_source}" )" && pwd )
+
+
 packages=`cat packages`
 backups=`cat backups`
 
@@ -115,4 +125,5 @@ grep -q "openwrt-tailscale" /etc/opkg/customfeeds.conf || \
 opkg update
 opkg install tailscale
 
-
+# Change default shell to bash
+sed -i 's,/bin/ash,/bin/bash,g' /etc/passwd
