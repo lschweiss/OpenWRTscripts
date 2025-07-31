@@ -49,3 +49,4 @@ xfs-mkfs
 kmod-usb-storage
 kmod-usb-storage-uas
 kmod-fs-xfs
+kmod-ipt-nat
