@@ -31,12 +31,12 @@ wait_for_reboot () {
 }
 
 install_packages () {
-    while [ $1 != '' ]; do
+    while [ "$1" != '' ]; do
         package="$1"
         $SSH "opkg status $package" | grep -q "installed"
         if [ $? -ne 0 ]; then
             echo "Installing $package"
-            ssh "opkg install $package" 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
+            $SSH "opkg install $package" 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
                 die "Failed to install $package"
         else
             echo "Already installed $package"
@@ -129,8 +129,6 @@ setup_openwrt
 echo
 echo "Enabling USB recovery."
 
-fw_setenv usbimage 'openwrt-qualcommax-ipq807x-linksys_mx5300-initramfs-uImage.itb'
-fw_setenv bootusb 'usb start && fatload usb 0:1 $loadaddr $usbimage && bootm $loadaddr'
-fw_setenv bootcmd 'run bootusb; aq_load_fw && if test $auto_recovery = no; then bootipq; elif test $boot_part = 1; then run bootpart1; else run bootpart2; fi'
+$SSH /root/OpenWRTscripts/mx5300/enable_usb_recovery.sh
 
 echo "Openwrt basic setup complete on both partitons."
