@@ -121,6 +121,9 @@ echo
 echo "Rebooting to alternate partition..."
 $SSH /root/OpenWRTscripts/mx5300/switch_boot_partitions.sh
 
+# Clear host key since it will change on the other partition. 
+ssh-keygen -R 192.168.1.1
+
 wait_for_reboot
 
 setup_openwrt
