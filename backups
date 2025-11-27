@@ -1,5 +1,7 @@
 /root
 /etc/hosts*
+/etc/devmode
+/etc/crontabs
 /etc/rc.d
 /etc/rc.local
 /etc/init.d
