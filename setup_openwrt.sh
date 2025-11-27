@@ -90,7 +90,11 @@ if [ $? -ne 0 ]; then
 # Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
-[ -e /root/OpenWRTscripts/auto_dev_mode.sh ] && /root/OpenWRTscripts/auto_dev_mode.sh 2>&1 | logger -t auto_dev_mode
+if [ -e /root/OpenWRTscripts/auto_dev_mode.sh ]; then
+    cd /root/OpenWRTscripts
+    git pull
+    /root/OpenWRTscripts/auto_dev_mode.sh 2>&1 | logger -t auto_dev_mode
+fi
 
 exit 0
 EOF4
@@ -119,11 +123,7 @@ uci show auto_dev_mode
 
 
 # Add Tailscale repository and install Tailscale
-wget -O /tmp/key-build.pub https://gunanovo.github.io/openwrt-tailscale/key-build.pub && opkg-key add /tmp/key-build.pub
-grep -q "openwrt-tailscale" /etc/opkg/customfeeds.conf || \
-    echo "src/gz openwrt-tailscale https://gunanovo.github.io/openwrt-tailscale" >> /etc/opkg/customfeeds.conf
-opkg update
-opkg install tailscale 2>/dev/null
+./install_tailscale.sh
 
 # Change default shell to bash
 sed -i 's,/bin/ash,/bin/bash,g' /etc/passwd
