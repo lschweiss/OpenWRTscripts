@@ -24,7 +24,6 @@ luci-app-advanced-reboot
 luci-app-attendedsysupgrade
 luci-app-commands
 luci-app-ddns
-luci-app-mwan3
 luci-app-nlbwmon
 luci-app-statistics
 luci-app-ttyd

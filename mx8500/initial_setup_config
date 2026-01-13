@@ -1,0 +1,37 @@
+#! /bin/bash
+
+##
+# Modifiers to initial_setup.sh for MX8500
+##
+
+MODEL='Linksys MX8500'
+
+# Check the router has WAN connectivity
+check_wan () {
+    $SSH "ip a show wan" | grep -q "inet "
+    if [ $? -ne 0 ]; then 
+        $SSH "fw_printenv -n bootcmd" | grep aq_load_fw
+        if [ $? -ne 0 ]; then
+            echo "Enabling Marvell AQR firmware before boot and USB recovery"
+            $SSH "fw_setenv bootusb 'usb start && usbboot \$loadaddr 0 && bootm \$loadaddr'"
+            $SSH "fw_setenv bootcmd 'aq_load_fw; run bootusb; if test \$auto_recovery = no; then bootipq; elif test \$boot_part = 1; then run bootpart1; else run bootpart2; fi'"
+            echo "Rebooting..."
+            $SSH "reboot"
+            sleep 20s
+            wait_for_reboot
+        fi
+    fi
+
+
+    # Check the router has WAN connectivity
+    $SSH "ip a show wan" | grep -q "inet "
+    [ $? -ne 0 ] && die "Router needs to have WAN connectivity to proceed."
+    echo "WAN connectivity verified."
+    echo
+}
+
+enable_usb_recovery () {
+    echo
+    echo "USB recovery enabled while enableing Marvell AQR firmware"
+}
+    
