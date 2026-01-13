@@ -8,21 +8,35 @@ else
 fi
 cd $( cd -P "$( dirname "${my_source}" )" && pwd )
 
+[ -f 'config' ] && source config
+
+install_packages () {
+    mkdir -p /tmp/setup
+    while [ "$1" != '' ]; do
+        package="$1"
+        opkg status $package | grep -q "installed"
+        if [ $? -ne 0 ]; then
+            echo "Installing $package"
+            opkg install $package 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
+                die "Failed to install $package"
+        else
+            echo "Already installed $package"
+        fi
+        shift
+    done
+}
 
 packages=`cat packages`
 backups=`cat backups`
 
 opkg update
-mkdir -p /tmp/setup
 for package in $packages; do
-    opkg status $package | grep -q "installed" 
-    if [ $? -ne 0 ]; then
-        echo "Installing $package"
-        opkg install $package 1> /tmp/setup/install.$package 2> /tmp/setup/install.${ackage}.err
-    else
-        echo "Already installed $package"
-    fi
+    install_packages "$package"
 done
+
+[ "$INSTALL_WIREGUARD" == 'true' ]  && install_packages luci-proto-wireguard
+
+[ "$INSTALL_MWAN3" == 'true' ]  && install_packages luci-app-mwan3
 
 if [ ! -f /root/opkgscript.sh ]; then 
     wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
@@ -78,6 +92,22 @@ if [ ! -f /etc/sysupgrade.conf ]; then
 EOF3
 fi
 
+grep "net.core" /etc/sysctl.conf || cat << EOF4 >>/etc/sysctl.conf
+net.core.rmem_default=10485760
+net.core.wmem_default=10485760
+net.core.rmem_max=10485760
+net.core.wmem_max=10485760
+EOF4
+
+set -x
+uci add nlbwmon nlbwmon
+uci set nlbwmon.@nlbwmon[0].netlink_buffer_size='10485760'
+uci commit nlbwmon   
+
+uci set luci.main.check_for_newer_firmwares='1'
+uci commit luci
+set +x
+
 for x in $backups; do
     grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
 done
@@ -102,6 +132,7 @@ fi
 
 chmod +x /etc/rc.local
 
+set -x
 # Create configuration file
 touch /etc/config/auto_dev_mode
 # Set variables
@@ -121,9 +152,10 @@ uci commit auto_dev_mode
 # Verify settings
 uci show auto_dev_mode
 
+set +x
 
 # Add Tailscale repository and install Tailscale
-./install_tailscale.sh
+[ "$INSTALL_TAILSCALE" == 'true' ] && ./install_tailscale.sh
 
 # Change default shell to bash
 sed -i 's,/bin/ash,/bin/bash,g' /etc/passwd

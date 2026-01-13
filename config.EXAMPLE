@@ -1,0 +1,22 @@
+####
+##
+##  OpenWRT initial setup config
+##
+####
+
+# Install latest tailscale from https://gunanovo.github.io/openwrt-tailscale
+INSTALL_TAILSCALE=true
+
+# Wireguard
+INSTALL_WIREGUARD=true
+JOIN_WIREGUARD=true
+WIREGUARD_PUBLIC_KEY=''
+ 
+# Install MWAN3
+INSTALL_MWAN3=true
+
+# Root SSH keys to be installed.
+ROOT_SSH_KEYS="{key_type1} {key1} {key_name1}
+{key_type2} {key2} {key_name2}"
+
+

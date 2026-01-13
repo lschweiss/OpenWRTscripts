@@ -1,0 +1,8 @@
+#! /bin/bash
+
+##
+# Modifiers to initial_setup.sh for MX5300
+##
+
+MODEL='Linksys MX5300'
+
