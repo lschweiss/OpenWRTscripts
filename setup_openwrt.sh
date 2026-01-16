@@ -38,6 +38,20 @@ done
 
 [ "$INSTALL_MWAN3" == 'true' ]  && install_packages luci-app-mwan3
 
+if [ "$INSTALL_OPENSSH" == 'true' ]; then
+    install_packages openssh-server openssh-sftp-server
+    service disable dropbear
+    service stop dropbear
+    [ "$OPENSSH_ROOT_LOGIN" == 'true' ] && \
+        sed -i '/PermitRootLogin/c PermitRootLogin yes' /etc/ssh/sshd_config
+    service restart sshd
+    mkdir /root/.ssh
+    chmod 700 /root/.ssh
+    [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /root/.ssh/authorized_keys
+else
+    [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /etc/dropbear/authorized_keys
+fi
+
 if [ ! -f /root/opkgscript.sh ]; then 
     wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
     chmod +x /root/opkgscript.sh
@@ -102,10 +116,15 @@ EOF4
 set -x
 uci add nlbwmon nlbwmon
 uci set nlbwmon.@nlbwmon[0].netlink_buffer_size='10485760'
-uci commit nlbwmon   
 
 uci set luci.main.check_for_newer_firmwares='1'
-uci commit luci
+
+uci set attendedsysupgrade.client.auto_search='1'
+uci set attendedsysupgrade.client.advanced_mode='1'
+uci set uhttpd.main.redirect_https='1'
+
+uci commit
+
 set +x
 
 for x in $backups; do
@@ -149,13 +168,10 @@ done
 
 # Commit changes
 uci commit auto_dev_mode
+set +x
 # Verify settings
 uci show auto_dev_mode
 
-set +x
-
-# Add Tailscale repository and install Tailscale
-[ "$INSTALL_TAILSCALE" == 'true' ] && ./install_tailscale.sh
-
 # Change default shell to bash
 sed -i 's,/bin/ash,/bin/bash,g' /etc/passwd
+

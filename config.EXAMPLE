@@ -15,8 +15,16 @@ WIREGUARD_PUBLIC_KEY=''
 # Install MWAN3
 INSTALL_MWAN3=true
 
+# Install OpenSSH server
+INSTALL_OPENSSH=true
+# Allow root login
+# Set to 'yes' to allow password or 'prohibit-password' for ssh key only
+OPENSSH_ROOT_LOGIN='yes'
+
 # Root SSH keys to be installed.
 ROOT_SSH_KEYS="{key_type1} {key1} {key_name1}
 {key_type2} {key2} {key_name2}"
 
+# Run attended sysupgrade when complete
+ATTENDED_UPGRADE=true
 
