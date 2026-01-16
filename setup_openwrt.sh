@@ -39,6 +39,7 @@ done
 [ "$INSTALL_MWAN3" == 'true' ]  && install_packages luci-app-mwan3
 
 if [ "$INSTALL_OPENSSH" == 'true' ]; then
+    echo "Installing OpenSSH server"
     install_packages openssh-server openssh-sftp-server
     service disable dropbear
     service stop dropbear
@@ -58,6 +59,7 @@ if [ ! -f /root/opkgscript.sh ]; then
 fi
 
 if [ ! -f /root/.vimrc ]; then
+    echo "Configuring vimrc"
     cat << EOF1 > /root/.vimrc 
 :set hlsearch
 
@@ -79,6 +81,7 @@ fi
 
 
 if [ ! -f /etc/bash.bashrc ]; then
+    echo "Setting bash defaults"
     cat << EOF2 > /etc/bash.bashrc
 # System-wide .bashrc file
 
@@ -97,6 +100,7 @@ EOF2
 fi
 
 if [ ! -f /etc/sysupgrade.conf ]; then
+    echo "Configuring sysupgrade"
     cat << EOF3 > /etc/sysupgrade.conf
 ## This file contains files and directories that should
 ## be preserved during an upgrade.
@@ -104,6 +108,11 @@ if [ ! -f /etc/sysupgrade.conf ]; then
 # /etc/example.conf
 # /etc/openvpn/
 EOF3
+
+    for x in $backups; do
+        grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
+    done
+
 fi
 
 grep "net.core" /etc/sysctl.conf || cat << EOF4 >>/etc/sysctl.conf
@@ -127,10 +136,6 @@ uci commit
 
 set +x
 
-for x in $backups; do
-    grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
-done
-
 # Configure auto_dev_mode
 
 uci show auto_dev_mode
@@ -151,8 +156,9 @@ fi
 
 chmod +x /etc/rc.local
 
-set -x
 # Create configuration file
+echo "Configuring auto dev mode"
+
 touch /etc/config/auto_dev_mode
 # Set variables
 uci set auto_dev_mode.settings=auto_dev_mode
@@ -168,7 +174,6 @@ done
 
 # Commit changes
 uci commit auto_dev_mode
-set +x
 # Verify settings
 uci show auto_dev_mode
 
