@@ -46,13 +46,17 @@ setup_openwrt () {
     # Install bash, git and download OpenWRTscripts
 
     $SSH "opkg update" || die "Could not update opkg packages.  Is internet connected?"
-    install_packages bash git git-http
-    $SSH git clone https://github.com/lschweiss/OpenWRTscripts.git
+    $SSH "opkg install bash git git-http"
+    $SSH "git clone https://github.com/lschweiss/OpenWRTscripts.git"
 
     [ -f "$config" ] && $SCP $config root@$IP:/root/OpenWRTscripts/config
 
     # Run initial OpenWRT setup
     $SSH /root/OpenWRTscripts/setup_openwrt.sh
+
+    # Clear host key if OpenSSH was installed
+    [ "$INSTALL_OPENSSH" == 'true' ] && ssh-keygen -R $IP
+
 }
 
 
@@ -176,27 +180,54 @@ wait_for_reboot
 
 setup_openwrt
 
-##
-# Repeat setup on other partion
-##
-echo 
-echo "###"
-echo "# Repeating setup on other partion"
-echo "###"
 
+if [ "$ATTENDED_UPGRADE" == 'true' ]; then
+    echo 
+    echo "Running Attended Sysupgrade..."
+    $SSH "owut upgrade --force"
+    wait_for_reboot
+    # Add Tailscale repository and install Tailscale
+    if [ "$INSTALL_TAILSCALE" == 'true' ]; then 
+        $SSH "/root/OpenWRTscripts/install_tailscale.sh"
+        tailscale='--remove tailscale'
+    fi
+    echo "Running Attended Sysupgrade for second partion..."
+    
+    $SSH "owut upgrade --force $tailscale"
+    # Add Tailscale repository and install Tailscale
+    [ "$INSTALL_TAILSCALE" == 'true' ] && $SSH "/root/OpenWRTscripts/install_tailscale.sh"
 
-# Reboot to other partiton
-echo
-echo "Rebooting to alternate partition..."
-$SSH /root/OpenWRTscripts/$model/switch_boot_partitions.sh
+else
+    # Add Tailscale repository and install Tailscale
+    [ "$INSTALL_TAILSCALE" == 'true' ] && $SSH "/root/OpenWRTscripts/install_tailscale.sh"
+    ##
+    # Repeat setup on other partion
+    ##
+    echo 
+    echo "###"
+    echo "# Repeating setup on other partion"
+    echo "###"
+    
+    
+    # Reboot to other partiton
+    echo
+    echo "Rebooting to alternate partition..."
+    $SSH /root/OpenWRTscripts/$model/switch_boot_partitions.sh
 
-# Clear host key since it will change on the other partition. 
-ssh-keygen -R $IP
+    # Clear host key since it will change on the other partition. 
+    ssh-keygen -R $IP
 
-wait_for_reboot
+    wait_for_reboot
 
-setup_openwrt
+    setup_openwrt
+
+    # Add Tailscale repository and install Tailscale
+    [ "$INSTALL_TAILSCALE" == 'true' ] && $SSH "/root/OpenWRTscripts/install_tailscale.sh"
+
+fi    
+    
 
 enable_usb_recovery
 
+echo
 echo "Openwrt basic setup complete on both partitons."
