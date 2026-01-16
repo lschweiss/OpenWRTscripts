@@ -41,11 +41,11 @@ done
 if [ "$INSTALL_OPENSSH" == 'true' ]; then
     echo "Installing OpenSSH server"
     install_packages openssh-server openssh-sftp-server
-    service disable dropbear
-    service stop dropbear
+    service dropbear disable
+    service dropbear stop
     [ "$OPENSSH_ROOT_LOGIN" == 'true' ] && \
         sed -i '/PermitRootLogin/c PermitRootLogin yes' /etc/ssh/sshd_config
-    service restart sshd
+    service sshd restart
     mkdir /root/.ssh
     chmod 700 /root/.ssh
     [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /root/.ssh/authorized_keys
