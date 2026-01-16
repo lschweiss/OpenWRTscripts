@@ -194,6 +194,7 @@ if [ "$ATTENDED_UPGRADE" == 'true' ]; then
     echo "Running Attended Sysupgrade for second partion..."
     
     $SSH "owut upgrade --force $tailscale"
+    wait_for_reboot
     # Add Tailscale repository and install Tailscale
     [ "$INSTALL_TAILSCALE" == 'true' ] && $SSH "/root/OpenWRTscripts/install_tailscale.sh"
 
