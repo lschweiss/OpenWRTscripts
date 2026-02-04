@@ -6,11 +6,11 @@
 
 prod_network="$(uci get auto_dev_mode.settings.prod_network 2>/dev/null || echo '192.168.1')"
 dev_network="$(uci get auto_dev_mode.settings.dev_network 2>/dev/null || echo '192.168.99')"
-enabled="$(uci get auto_dev_mode.settings.enabled 2>/dev/null || echo '1')"
+enable="$(uci get auto_dev_mode.settings.enable 2>/dev/null || echo '1')"
 force="$(uci get auto_dev_mode.settings.force 2>/dev/null || echo '0')"
 disable_services="$(uci get auto_dev_mode.settings.disable_services 2>/dev/null )"
 
-if [ $enabled -eq 0 ]; then
+if [ $enable -eq 0 ]; then
     echo "auto_dev_mode disabled.  Exiting."
     exit 0
 fi
