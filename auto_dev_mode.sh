@@ -24,6 +24,10 @@ until [ $result -eq 0 ]; do
     ip a show wan | grep -q "inet "
     result=$?
     sleep 1
+    if [ $SECONDS -gt 300 ]; then
+        echo "Timeout waiting for WAN port to come up. Exiting auto_dev_mode"
+        exit 1
+    fi
 done
 echo "WAN connection up"
 ip a show wan | grep "inet "
