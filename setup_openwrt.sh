@@ -100,7 +100,7 @@ EOF2
 fi
 
 if [ ! -f /etc/sysupgrade.conf ]; then
-    echo "Configuring sysupgrade"
+    echo "Creating sysupgrade.conf"
     cat << EOF3 > /etc/sysupgrade.conf
 ## This file contains files and directories that should
 ## be preserved during an upgrade.
@@ -108,12 +108,15 @@ if [ ! -f /etc/sysupgrade.conf ]; then
 # /etc/example.conf
 # /etc/openvpn/
 EOF3
-
-    for x in $backups; do
-        grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
-    done
-
 fi
+
+echo
+echo "Configuring sysupgrade.conf"
+
+for x in $backups; do
+    grep -q "$x" /etc/sysupgrade.conf || echo $x >> /etc/sysupgrade.conf
+done
+
 
 grep "net.core" /etc/sysctl.conf || cat << EOF4 >>/etc/sysctl.conf
 net.core.rmem_default=10485760
