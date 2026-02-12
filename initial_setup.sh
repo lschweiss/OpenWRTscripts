@@ -49,6 +49,12 @@ setup_openwrt () {
     $SSH "opkg install bash git git-http"
     $SSH "git clone https://github.com/lschweiss/OpenWRTscripts.git"
 
+    if [ "$HOSTNAME_PUSH" == 'true' ]; then
+        cp $config /tmp/openwrt.config
+        echo "OPENWRT_HOSTNAME=\"$OPENWRT_HOSTNAME\"" >>/tmp/openwrt.config
+        config="/tmp/openwrt.config"
+    fi
+
     [ -f "$config" ] && $SCP $config root@$IP:/root/OpenWRTscripts/config
 
     # Run initial OpenWRT setup
@@ -139,6 +145,9 @@ else
 fi
 
 
+# Ask for hostname
+OPENWRT_HOSTNAME='ask'
+
 # Install latest tailscale from https://gunanovo.github.io/openwrt-tailscale
 INSTALL_TAILSCALE=true
 
@@ -173,6 +182,15 @@ test_connectivity
 check_model
 
 check_wan
+
+if [ "$OPENWRT_HOSTNAME" == 'ask' ]; then
+    echo
+    read -p "Enter hostname for this device: " OPENWRT_HOSTNAME
+    echo
+    HOSTNAME_PUSH=true
+else
+    HOSTNAME_PUSH=false
+fi
 
 download_firmware
 

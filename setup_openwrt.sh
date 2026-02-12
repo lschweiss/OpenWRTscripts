@@ -53,6 +53,21 @@ else
     [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /etc/dropbear/authorized_keys
 fi
 
+if [ "$ROOT_SHADOW" != '' ]; then
+    if [ "$ROOT_SSH_KEYS" == '' ]; then
+        echo 
+        echo "Not setting Root password because no SSH keys were installed."
+        echo "Script needs this to continue to function after setting password."
+        echo
+    else
+        echo
+        echo "Setting root password"
+        echo
+        sed -i '/root/d' /etc/shadow
+        echo "$ROOT_SHADOW" >> /etc/shadow
+    fi
+fi
+
 if [ ! -f /root/opkgscript.sh ]; then 
     wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
     chmod +x /root/opkgscript.sh
