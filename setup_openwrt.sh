@@ -35,6 +35,12 @@ for package in $packages; do
 done
 
 if [ "$OPENWRT_HOSTNAME" != '' ]; then
+    echo
+    echo "Setting hostname: $OPENWRT_HOSTNAME"
+
+    # Clean the variable
+    OPENWRT_HOSTNAME=$(echo "$OPENWRT_HOSTNAME" | tr -d '\r\n')
+
     uci set system.@system[0].hostname="$OPENWRT_HOSTNAME"
     uci commit system
     /etc/init.d/system reload 
