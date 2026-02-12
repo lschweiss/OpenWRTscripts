@@ -187,6 +187,8 @@ if [ "$OPENWRT_HOSTNAME" == 'ask' ]; then
     echo
     read -p "Enter hostname for this device: " OPENWRT_HOSTNAME
     echo
+    # Clean the variable
+    OPENWRT_HOSTNAME=$(echo "$OPENWRT_HOSTNAME" | tr -d '\r\n')
     HOSTNAME_PUSH=true
 else
     HOSTNAME_PUSH=false
