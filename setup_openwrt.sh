@@ -34,6 +34,12 @@ for package in $packages; do
     install_packages "$package"
 done
 
+if [ "$OPENWRT_HOSTNAME" != '' ]; then
+    uci set system.@system[0].hostname="$OPENWRT_HOSTNAME"
+    uci commit system
+    /etc/init.d/system reload 
+fi
+
 [ "$INSTALL_WIREGUARD" == 'true' ]  && install_packages luci-proto-wireguard
 
 [ "$INSTALL_MWAN3" == 'true' ]  && install_packages luci-app-mwan3
