@@ -4,6 +4,9 @@
 ##
 ####
 
+# Set hostname or 'ask' to prompt for hostname
+OPENWRT_HOSTNAME='ask'
+
 # Install latest tailscale from https://gunanovo.github.io/openwrt-tailscale
 INSTALL_TAILSCALE=true
 
@@ -25,6 +28,12 @@ OPENSSH_ROOT_LOGIN='yes'
 ROOT_SSH_KEYS="{key_type1} {key1} {key_name1}
 {key_type2} {key2} {key_name2}"
 
+# Set root password
+#ROOT_SHADOW='root:$5$7...HASH_FROM_/etc/shadow...:20496:0:99999:7:::'
+
 # Run attended sysupgrade when complete
 ATTENDED_UPGRADE=true
+
+# Additional Setup
+#ADDITIONAL_SETUP='post_config.{my_config_name}.sh'
 
