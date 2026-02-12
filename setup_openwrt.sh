@@ -39,7 +39,7 @@ if [ "$OPENWRT_HOSTNAME" != '' ]; then
     echo "Setting hostname: $OPENWRT_HOSTNAME"
 
     # Clean the variable
-    OPENWRT_HOSTNAME=$(echo "$OPENWRT_HOSTNAME" | tr -d '\r\n')
+    OPENWRT_HOSTNAME=$(echo "$OPENWRT_HOSTNAME" | sed 's/[^[:alnum:]-]//g')
 
     uci set system.@system[0].hostname="$OPENWRT_HOSTNAME"
     uci commit system
