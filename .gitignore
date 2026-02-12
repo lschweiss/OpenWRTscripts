@@ -1,1 +1,4 @@
 config.*
+post_config.*
+*.swp
+*.swo

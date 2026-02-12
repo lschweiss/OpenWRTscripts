@@ -180,6 +180,10 @@ wait_for_reboot
 
 setup_openwrt
 
+if [ "$ADDITIONAL_SETUP" != '' ]; then
+    $SCP $ADDITIONAL_SETUP root@$IP:/root/
+fi
+
 
 if [ "$ATTENDED_UPGRADE" == 'true' ]; then
     echo 
@@ -227,6 +231,7 @@ else
 
 fi    
     
+
 
 enable_usb_recovery
 
