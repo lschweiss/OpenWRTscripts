@@ -36,6 +36,7 @@ procps-ng-ps
 procps-ng-top
 procps-ng-watch
 sed
+screen
 snmpd
 tcpdump
 telnet-bsd
