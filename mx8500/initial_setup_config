@@ -19,6 +19,7 @@ check_wan () {
             $SSH "reboot"
             sleep 20s
             wait_for_reboot
+            sleep 10s
         fi
     fi
 
