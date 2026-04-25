@@ -51,3 +51,6 @@ kmod-usb-storage
 kmod-usb-storage-uas
 kmod-fs-xfs
 kmod-ipt-nat
+coreutils-nohup
+jq-full
+iperf3

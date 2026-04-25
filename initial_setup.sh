@@ -26,27 +26,11 @@ wait_for_reboot () {
     done
 }
 
-install_packages () {
-    mkdir -p /tmp/setup
-    while [ "$1" != '' ]; do
-        package="$1"
-        $SSH "opkg status $package" | grep -q "installed"
-        if [ $? -ne 0 ]; then
-            echo "Installing $package"
-            $SSH "opkg install $package" 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
-                die "Failed to install $package"
-        else
-            echo "Already installed $package"
-        fi
-        shift
-    done
-}
-
 setup_openwrt () {
     # Install bash, git and download OpenWRTscripts
 
-    $SSH "opkg update" || die "Could not update opkg packages.  Is internet connected?"
-    $SSH "opkg install bash git git-http"
+    $SSH "${package_update}" || die "Could not update packages.  Is internet connected?"
+    $SSH "${package_install} bash git git-http"
     $SSH "git clone https://github.com/lschweiss/OpenWRTscripts.git"
 
     if [ "$HOSTNAME_PUSH" == 'true' ]; then
@@ -169,7 +153,7 @@ if [ -f "$config" ]; then
     echo "Sourcing config $config"
     source $config
 else
-    echo "No additonal config found: $config"
+    echo "No additional config found: $config"
 fi
 
 [ "$IP" == '' ] && IP='192.168.1.1'
@@ -179,7 +163,7 @@ SCP="scp -O -o StrictHostKeyChecking=no"
 
 test_connectivity
 
-check_model
+source common.sh
 
 check_wan
 
@@ -198,6 +182,10 @@ fi
 download_firmware
 
 wait_for_reboot
+
+sleep 10
+
+check_wan
 
 setup_openwrt
 

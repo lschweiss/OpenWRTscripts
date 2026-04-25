@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Stage two of setup.  This script runs on the router.
+
 # Find our source and change to the directory
 if [ -f "${BASH_SOURCE[0]}" ]; then
     my_source=`readlink -f "${BASH_SOURCE[0]}"`
@@ -10,26 +12,12 @@ cd $( cd -P "$( dirname "${my_source}" )" && pwd )
 
 [ -f 'config' ] && source config
 
-install_packages () {
-    mkdir -p /tmp/setup
-    while [ "$1" != '' ]; do
-        package="$1"
-        opkg status $package | grep -q "installed"
-        if [ $? -ne 0 ]; then
-            echo "Installing $package"
-            opkg install $package 1> /tmp/setup/install.$package 2> /tmp/setup/install.${package}.err || \
-                die "Failed to install $package"
-        else
-            echo "Already installed $package"
-        fi
-        shift
-    done
-}
+source common.sh
 
 packages=`cat packages`
 backups=`cat backups`
 
-opkg update
+${package_update}
 for package in $packages; do
     install_packages "$package"
 done
@@ -80,10 +68,10 @@ if [ "$ROOT_SHADOW" != '' ]; then
     fi
 fi
 
-if [ ! -f /root/opkgscript.sh ]; then 
-    wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
-    chmod +x /root/opkgscript.sh
-fi
+#if [ ! -f /root/opkgscript.sh ]; then 
+#    wget -o /root/opkgscript.sh https://raw.githubusercontent.com/richb-hanover/OpenWrtScripts/refs/heads/main/opkgscript.sh
+#    chmod +x /root/opkgscript.sh
+#fi
 
 if [ ! -f /root/.vimrc ]; then
     echo "Configuring vimrc"
