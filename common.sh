@@ -1,4 +1,10 @@
 
+# We failed and must exit
+die () {
+    echo "$1"
+    exit 1
+}
+
 # Install packages
 
 install_packages () {
