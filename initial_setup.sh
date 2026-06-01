@@ -24,6 +24,7 @@ wait_for_reboot () {
         $SSH echo "Reconnection established." 2>/dev/null
         connected=$?
     done
+    sleep 10
 }
 
 setup_openwrt () {
@@ -156,6 +157,12 @@ else
     echo "No additional config found: $config"
 fi
 
+if [ "$KEEP_VERSION" == 'true' ]; then
+    KEEP_VERSION="-V $DISTRIB_RELEASE"
+else
+    KEEP_VERSION=''
+fi
+
 [ "$IP" == '' ] && IP='192.168.1.1'
 
 SSH="ssh -x -o StrictHostKeyChecking=no root@$IP"
@@ -206,7 +213,7 @@ if [ "$ATTENDED_UPGRADE" == 'true' ]; then
     fi
     echo "Running Attended Sysupgrade for second partion..."
     
-    $SSH "owut upgrade --force $tailscale"
+    $SSH "owut upgrade $KEEP_VERSION --force $tailscale"
     wait_for_reboot
     # Add Tailscale repository and install Tailscale
     [ "$INSTALL_TAILSCALE" == 'true' ] && $SSH "/root/OpenWRTscripts/install_tailscale.sh"
