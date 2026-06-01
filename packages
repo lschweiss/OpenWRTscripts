@@ -9,7 +9,6 @@ gawk
 git
 grep
 htop
-ifstat
 iftop
 ip-full
 ip6tables-nft
