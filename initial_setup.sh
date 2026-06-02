@@ -32,6 +32,7 @@ setup_openwrt () {
 
     $SSH "${package_update}" || die "Could not update packages.  Is internet connected?"
     $SSH "${package_install} bash git git-http"
+    $SSH "rm -rf /root/OpenWRTscripts"
     $SSH "git clone https://github.com/lschweiss/OpenWRTscripts.git"
 
     if [ "$HOSTNAME_PUSH" == 'true' ]; then
