@@ -48,9 +48,9 @@ if [ "$INSTALL_OPENSSH" == 'true' ]; then
     service sshd restart
     mkdir /root/.ssh
     chmod 700 /root/.ssh
-    [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /root/.ssh/authorized_keys
+    [ "$ROOT_SSH_KEYS" != '' ] && echo -e $ROOT_SSH_KEYS > /root/.ssh/authorized_keys
 else
-    [ "$ROOT_SSH_KEYS" != '' ] && echo $ROOT_SSH_KEYS > /etc/dropbear/authorized_keys
+    [ "$ROOT_SSH_KEYS" != '' ] && echo -e $ROOT_SSH_KEYS > /etc/dropbear/authorized_keys
 fi
 
 if [ "$ROOT_SHADOW" != '' ]; then

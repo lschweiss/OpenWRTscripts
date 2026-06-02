@@ -24,9 +24,8 @@ INSTALL_OPENSSH=true
 # Set to 'yes' to allow password or 'prohibit-password' for ssh key only
 OPENSSH_ROOT_LOGIN='yes'
 
-# Root SSH keys to be installed.
-ROOT_SSH_KEYS="{key_type1} {key1} {key_name1}
-{key_type2} {key2} {key_name2}"
+# Root SSH keys to be installed.  Note: use \n between keys to cause newlines
+ROOT_SSH_KEYS="{key_type1} {key1} {key_name1}\n{key_type2} {key2} {key_name2}"
 
 # Set root password
 #ROOT_SHADOW='root:$5$7...HASH_FROM_/etc/shadow...:20496:0:99999:7:::'
